@@ -1,0 +1,191 @@
+% read in data
+% load the trained GMM model
+clc ;
+clear all;
+close all;
+load gm1;
+load gm2;
+folder3 = fullfile('C:\Users\Juadds\Desktop\speechwork\Training data\verification');
+folder4 = fullfile('C:\Users\Juadds\Desktop\speechwork\Training data\Test');
+
+ads3 = audioDatastore(folder3, 'IncludeSubfolders',true, ...
+    'FileExtensions','.wav', ...
+    'LabelSource','foldernames')
+  ads4 = cd ('C:\Users\Juadds\Desktop\speechwork\Training data\Test');
+
+  
+  
+  
+  % extract the feature (pitch and mfcc)
+reset(ads3)
+lenDataTrain3 = length(ads3.Files);
+features3 = cell(lenDataTrain3,1);
+for i = 1:lenDataTrain3
+    [dataTrain3, infoTrain3] = read(ads3);
+    features3{i} = HelperComputePitchAndMFCC(dataTrain3,infoTrain3);
+end
+features3 = vertcat(features3{:});% change the types
+features3 = rmmissing(features3);% delte the blank 
+
+verificationMf = features3{:,2:15} ;
+o = pdf(gm1,verificationMf);%calculate the pdf for each models
+j = pdf(gm2,verificationMf);
+
+p =  0;m = 0 ;
+CC = features3{:,16};
+
+for i = 1 : size(CC)
+  if o(i) >= j (i)
+    
+    Female = extractBefore(CC(i),2)
+    tf1 = strcmp(Female,"F")
+    if tf1 == 1;
+    p = p + 1;
+    
+    end
+  else
+         
+        Malew = extractBefore(CC(i),2)
+        tf2 = strcmp(Malew,"M")       
+        if tf2 == 1
+              m = m+1;
+             
+        end
+  
+  end
+end
+k= 0;
+for i =  1:length(CC)
+  Num1 =  extractBefore(CC(i),2);
+    tf3 = strcmp(Num1,"F")
+    if tf3 == 1
+      k=k+1
+    end
+end
+ww = length(CC) - k;% man's number
+ 
+      
+  
+
+%the accurancy
+v =(m/ww);
+e = (p/k);
+str=['Man Accuracy=' num2str(v)];
+str1=['Woman Accuracy=' num2str(e)];
+
+disp(str);
+disp(str1);
+
+
+
+% test
+
+
+path = 'C:\Users\Juadds\Desktop\speechwork\Training data\Test'
+file = dir(path);
+file(1:2) = [];
+for i = 1:length(file)
+[x{i},fs{i}] = audioread(file(i).name);
+
+end
+for i = 1:length(file)
+    G=x{i};
+    Y = fs{i};
+features4 = HelperComputePitchAndMFCC1(G,Y);
+
+ features4 = vertcat(features4);% change the types
+features4 = rmmissing(features4);% delte the blank 
+
+
+
+
+
+
+
+
+   
+
+
+
+
+
+
+
+
+
+testMf = features4{:,1:14};
+% reset(ads4)
+% lenDataTrain4 = length(ads4.Files);
+% features4 = cell(lenDataTrain4,1);
+% 
+% 
+% for ii = 1:lenDataTrain4
+%  
+%   GW = audioDatastore(ads4.Files(ii),'IncludeSubfolders',true, ...
+%     'FileExtensions','.wav', ...
+%     'LabelSource','foldernames')
+%   
+%     [dataTrain4, infoTrain4] = audioread(GW);
+%     features4{ii} = HelperComputePitchAndMFCC(dataTrain4,infoTrain4);
+%     reset(GW)
+%   end
+% 
+% for p= 1: ii;
+%   if p < ii;
+%   p = p + 1
+% Featuress4 = features4(p)
+%   
+% Featuress4 = vertcat(Featuress4{:});
+% Featuress4 = rmmissing(Featuress4);
+%   end
+% % featureVectors4 = features4{:,2:15};
+% 
+%   
+% end
+% testMf = Featuress4{:,2:15};
+o1= pdf(gm1,testMf);
+j1 = pdf(gm2,testMf);
+
+GG = features4{:,1};
+% GO = cell(length(GG),1);
+% p is the times that female appear ...
+% m is the male times
+
+
+
+
+
+
+
+%test outcomes 
+   s = 0;
+    V = 0;
+for H = 1 : length(GG);
+   
+  if o1(H) >= j1 (H)
+   
+    s = s +1;
+    
+  else
+         
+     
+         V = V +1;    
+        end
+  
+end
+
+
+ if s > V;
+   I(i) = 'f'
+ else
+   I(i)= 'm'
+ end
+
+fid=fopen('C:\Users\Juadds\Desktop\MS naomi\outcomes.txt','wt');
+
+fprintf(fid,'%s\r\n',I');
+fclose(fid);
+end
+  %disp the accuracy
+disp(str);
+disp(str1);
